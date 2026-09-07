@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProofScope</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7f7f5;color:#171717;font-family:Arial,Helvetica,sans-serif}
+main{min-height:100vh;padding:32px 20px}
+.card{max-width:720px;margin:40px auto;background:white;border:1px solid #ddd;border-radius:20px;padding:32px;box-shadow:0 4px 15px #0000000a}
+h1{font-size:34px;margin:0 0 14px}h2{margin-top:0}
+p{line-height:1.5;color:#555}
+button,select{font-size:16px;border-radius:12px;padding:13px 18px}
+button{background:#171717;color:white;border:0;cursor:pointer;margin-top:18px}
+button.secondary{background:white;color:#171717;border:1px solid #ccc}
+select{width:100%;border:1px solid #ccc;background:white;margin-top:7px}
+.label{font-weight:bold;display:block;margin-top:20px}
+.box{background:#f5f5f3;border-radius:14px;padding:18px;margin-top:18px}
+.success{border-left:5px solid #287a3e}.warning{border-left:5px solid #b7791f}
+ul{line-height:1.8}
+.small{font-size:13px;color:#777}
+.hidden{display:none}
+.project{border:1px solid #ddd;border-radius:16px;padding:20px;margin:14px 0;cursor:pointer}
+.project:hover{box-shadow:0 3px 12px #0001}
+.back{background:none;color:#333;padding:0;margin:0 0 22px;text-decoration:underline}
+</style>
+</head>
+
+<body>
+<main>
+
+<!-- HOME -->
+<section id="home" class="card">
+<div class="small"><b>ProofScope</b></div>
+<h1>Proof-of-Skill evidence stays connected to its context.</h1>
+<p>Test whether project evidence authorized for one role or employer can be reused in another context.</p>
+<button onclick="show('projects')">View my projects</button>
+<p class="small">ProofScope es un prototipo con datos sintéticos.</p>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" class="card hidden">
+<button class="back" onclick="show('home')">← Back</button>
+<h1>My projects</h1>
+<p>Choose evidence to test in another context.</p>
+
+<div class="project" onclick="openProject(1)">
+<h2>Student Sales Dashboard</h2>
+<p>A synthetic project using sales data to identify trends and present findings.</p>
+<b>Authorized context:</b> Data Analyst · Empresa A
+</div>
+
+<div class="project" onclick="openProject(2)">
+<h2>Student Market Research Sprint</h2>
+<p>A synthetic market-research project with a defined authorized context.</p>
+<b>Authorized context:</b> Research Assistant · Mercado Claro
+</div>
+
+<p class="small">Synthetic data only.</p>
+</section>
+
+<!-- EVIDENCE -->
+<section id="evidence" class="card hidden">
+<button class="back" onclick="show('projects')">← Back to projects</button>
+<h1 id="evidenceTitle"></h1>
+<p id="evidenceDescription"></p>
+
+<div class="box">
+<h3>Evidence</h3>
+<ul id="evidenceList"></ul>
+</div>
+
+<div class="box">
+<h3>What the student did</h3>
+<p id="whatDid"></p>
+</div>
+
+<div class="box">
+<h3>Authorized context</h3>
+<p id="authorized"></p>
+</div>
+
+<p>This evidence is context-specific. The student controls sharing.</p>
+<button onclick="showContext()">Try another context</button>
+</section>
+
+<!-- CONTEXT -->
+<section id="context" class="card hidden">
+<button class="back" onclick="show('evidence')">← Back to evidence</button>
+<h1>Choose a new context</h1>
+<p>Where are you trying to use this evidence?</p>
+
+<label class="label">Role
+<select id="role">
+<option>Data Analyst</option>
+<option>Marketing Analyst</option>
+<option>Research Assistant</option>
+</select>
+</label>
+
+<label class="label">Employer
+<select id="employer">
+<option>Empresa A</option>
+<option>Empresa B</option>
+<option>Mercado Claro</option>
+</select>
+</label>
+
+<button onclick="verify()">Verify context</button>
+</section>
+
+<!-- RESULT -->
+<section id="result" class="card hidden">
+<div class="small"><b>Verification result</b></div>
+<h1 id="resultTitle"></h1>
+<p id="resultText"></p>
+<div id="resultBox"></div>
+
+<button id="reviewButton" onclick="showReview()">Request human review</button>
+<button class="secondary" onclick="showContext()">Try another context</button>
+<button class="secondary" onclick="show('projects')">Back to projects</button>
+</section>
+
+<!-- REVIEW -->
+<section id="review" class="card hidden">
+<button class="back" onclick="show('result')">← Back</button>
+<h1>Human review</h1>
+<p>You control whether this evidence is shared for review.</p>
+
+<div class="box">
+<p><b>Project:</b> <span id="reviewProject"></span></p>
+<p><b>Original context:</b> <span id="reviewOriginal"></span></p>
+<p><b>Requested context:</b> <span id="reviewNew"></span></p>
+<p><b>Current result:</b> Context mismatch</p>
+</div>
+
+<button onclick="submitReview()">Submit for review</button>
+</section>
+
+<!-- REVIEW CONFIRMATION -->
+<section id="confirmation" class="card hidden">
+<h1>Review requested</h1>
+<p>A human has final authority. ProofScope does not make the final decision or automatically share your evidence.</p>
+<button onclick="show('projects')">Back to projects</button>
+</section>
+
+</main>
+
+<script>
+const projects={
+1:{
+title:"Student Sales Dashboard",
+description:"A synthetic project using sales data to identify trends and present findings.",
+role:"Data Analyst",employer:"Empresa A",
+evidence:["Cleaned a sales dataset","Built a dashboard","Presented findings"],
+what:"Cleaned the data, built the dashboard, and presented the main findings."
+},
+2:{
+title:"Student Market Research Sprint",
+description:"A synthetic market-research project with a defined authorized context.",
+role:"Research Assistant",employer:"Mercado Claro",
+evidence:["Collected market observations","Organized research notes","Summarized findings"],
+what:"Collected and organized observations and summarized the findings."
+}
+};
+
+let current=1;
+
+function show(id){
+document.querySelectorAll("section").forEach(x=>x.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+window.scrollTo(0,0);
+}
+
+function openProject(id){
+current=id;
+let p=projects[id];
+document.getElementById("evidenceTitle").textContent=p.title;
+document.getElementById("evidenceDescription").textContent=p.description;
+document.getElementById("authorized").textContent=p.role+" · "+p.employer;
+document.getElementById("whatDid").textContent=p.what;
+document.getElementById("evidenceList").innerHTML=p.evidence.map(x=>"<li>"+x+"</li>").join("");
+show("evidence");
+}
+
+function showContext(){
+show("context");
+}
+
+function verify(){
+let p=projects[current];
+let role=document.getElementById("role").value;
+let employer=document.getElementById("employer").value;
+let verified=role===p.role && employer===p.employer;
+
+document.getElementById("resultTitle").textContent=
+verified?"Context verified":"Context mismatch";
+
+document.getElementById("resultText").textContent=
+verified
+?"This evidence matches the role and employer context it was authorized for."
+:"Not verified for this context.";
+
+let box=document.getElementById("resultBox");
+
+if(verified){
+box.className="box success";
+box.innerHTML="<b>Context verified.</b><p>The evidence matches both the authorized role and employer.</p>";
+document.getElementById("reviewButton").classList.add("hidden");
+}else{
+box.className="box warning";
+box.innerHTML="<b>Important:</b><p>A context mismatch does not mean the student lacks the ability. It means this evidence was not authorized for the selected context.</p>";
+document.getElementById("reviewButton").classList.remove("hidden");
+}
+
+window.newRole=role;
+window.newEmployer=employer;
+show("result");
+}
+
+function showReview(){
+let p=projects[current];
+document.getElementById("reviewProject").textContent=p.title;
+document.getElementById("reviewOriginal").textContent=p.role+" · "+p.employer;
+document.getElementById("reviewNew").textContent=window.newRole+" · "+window.newEmployer;
+show("review");
+}
+
+function submitReview(){
+show("confirmation");
+}
+</script>
+
+</body>
+</html>
